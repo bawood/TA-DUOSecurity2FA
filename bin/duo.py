@@ -17,6 +17,31 @@ class MyScript(smi.Script):
         super(MyScript, self).__init__()
         self._canceled = False
 
+    def load_checkpoint( self, ew, chk_dir, log):
+        chk_file = os.path.join(chk_dir, log)
+        try:
+            file = open(chk_file)
+            chktime = file.read().strip()
+            file.close()
+            message = "Loaded last timestamp of %s from %s checkpoint" % (
+                    time.ctime(float(chktime)), chk_file )
+            ew.log('INFO', message)
+        except IOError:
+            chktime = 0
+
+        return int(chktime)
+
+    def save_checkpoint(self, ew, chk_dir, log, time):
+        chk_file = os.path.join(chk_dir, log)
+        try:
+            file = open(chk_file, 'w')
+            file.write(time)
+            file.close()
+        except IOError:
+            message = "Couldn't write checkpoint file %s" % ( chk_file )
+            ew.log('FATAL', message)
+            raise e
+
     # GET SCHEME BEGIN
     def get_scheme(self):
         """overloaded splunklib modularinput method"""
@@ -97,14 +122,21 @@ class MyScript(smi.Script):
             ca_certs = None)
 
         if self.input_items['auth_log']:
-            lasttime = int(time.time()) - (int(self.input_items['history']) * 86400)
-            events = api_admin.get_authentication_log(lasttime)
+            lasttime = self.load_checkpoint(ew, checkpoint_dir, "auth_log")
+            if not lasttime:
+                ew.log( 'INFO', "no checkpoint time returned, using history value" )
+                lasttime = int(time.time()) - (int(self.input_items['history']) * 86400)
+            message = "Using checkpoint time %d" % (lasttime)
+            ew.log('INFO', message)
+            events = api_admin.get_authentication_log(lasttime + 1)
             message = "retrieved %d duo authentication events from %s" % (len(events), self.input_items['api_host'])
             ew.log( "INFO", message )
 
+            times = []
             for e in events:
                 e.pop('eventtype')
                 timestamp = e.pop('timestamp')
+                times.append(timestamp)
                 apihost = e.pop('host')
                 event = smi.Event(
                     data = json.dumps(e),
@@ -116,6 +148,8 @@ class MyScript(smi.Script):
                     ew.write_event(event)
                 except Exception as e:
                     raise e
+
+            self.save_checkpoint(ew, checkpoint_dir, "auth_log", str(max(times)))
 
 if __name__ == "__main__":
     exitcode = MyScript().run(sys.argv)
