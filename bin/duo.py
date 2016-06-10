@@ -55,17 +55,17 @@ class MyScript(smi.Script):
         scheme.add_argument(smi.Argument("name", title="Name",
                                          description="",
                                          required_on_create=True))
-        scheme.add_argument(smi.Argument("tel_log", title="Telephony Log",
+        scheme.add_argument(smi.Argument("get_telephony_log", title="Telephony Log",
                                          description="DUO Security Telephony Activity Log",
                                          data_type=smi.Argument.data_type_boolean,
                                          required_on_create=True,
                                          required_on_edit=True))
-        scheme.add_argument(smi.Argument("auth_log", title="Authentication Log",
+        scheme.add_argument(smi.Argument("get_authentication_log", title="Authentication Log",
                                          description="DUO Security Authentication Activity Log",
                                          data_type=smi.Argument.data_type_boolean,
                                          required_on_create=True,
                                          required_on_edit=True))
-        scheme.add_argument(smi.Argument("admin_log", title="Administration Log",
+        scheme.add_argument(smi.Argument("get_administrator_log", title="Administration Log",
                                          description="DUO Security Administration Activity Log",
                                          data_type=smi.Argument.data_type_boolean,
                                          required_on_create=True,
@@ -121,15 +121,15 @@ class MyScript(smi.Script):
             host = self.input_items['api_host'],
             ca_certs = None)
 
-        if self.input_items['auth_log']:
-            lasttime = self.load_checkpoint(ew, checkpoint_dir, "auth_log")
+        if self.input_items['get_authentication_log']:
+            lasttime = self.load_checkpoint(ew, checkpoint_dir, "get_authentication_log")
             if not lasttime:
                 ew.log( 'INFO', "no checkpoint time returned, using history value" )
                 lasttime = int(time.time()) - (int(self.input_items['history']) * 86400)
             message = "Using checkpoint time %d" % (lasttime)
             ew.log('INFO', message)
             events = api_admin.get_authentication_log(lasttime + 1)
-            message = "retrieved %d duo authentication events from %s" % (len(events), self.input_items['api_host'])
+            message = "retrieved %d duo get_authentication_log events from %s" % (len(events), self.input_items['api_host'])
             ew.log( "INFO", message )
 
             times = []
@@ -150,7 +150,7 @@ class MyScript(smi.Script):
                     raise e
 
             if len(times) > 0:
-                self.save_checkpoint(ew, checkpoint_dir, "authentication", str(max(times)))
+                self.save_checkpoint(ew, checkpoint_dir, "get_authentication_log", str(max(times)))
 
 if __name__ == "__main__":
     exitcode = MyScript().run(sys.argv)
