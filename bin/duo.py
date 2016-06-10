@@ -149,7 +149,8 @@ class MyScript(smi.Script):
                 except Exception as e:
                     raise e
 
-            self.save_checkpoint(ew, checkpoint_dir, "auth_log", str(max(times)))
+            if len(times) > 0:
+                self.save_checkpoint(ew, checkpoint_dir, "authentication", str(max(times)))
 
 if __name__ == "__main__":
     exitcode = MyScript().run(sys.argv)
