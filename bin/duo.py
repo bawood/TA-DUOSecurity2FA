@@ -42,6 +42,39 @@ class MyScript(smi.Script):
             ew.log('FATAL', message)
             raise e
 
+    def get_logs(self, inputs, ew, admin, log):
+        checkpoint_dir = inputs.metadata.get("checkpoint_dir")
+        lasttime = self.load_checkpoint(ew, checkpoint_dir, log)
+        if not lasttime:
+            ew.log( 'INFO', "no checkpoint time returned, using history value" )
+            lasttime = int(time.time()) - (int(self.input_items['history']) * 86400)
+        message = "Using checkpoint time %d" % (lasttime)
+        ew.log('INFO', message)
+        events = getattr(admin, log)(lasttime + 1)
+        message = "%s retrieved %d events from host %s" % (log, len(events), self.input_items['api_host'])
+        ew.log( "INFO", message )
+
+        times = []
+        for e in events:
+            etype = e.pop('eventtype')
+            st = ":".join(["duo", etype])
+            timestamp = e.pop('timestamp')
+            times.append(timestamp)
+            apihost = e.pop('host')
+            event = smi.Event(
+                data = json.dumps(e),
+                time = timestamp,
+                host = apihost,
+                index = self.output_index,
+                sourcetype = st)
+            try:
+                ew.write_event(event)
+            except Exception as e:
+                raise e
+
+        if len(times) > 0:
+            self.save_checkpoint(ew, checkpoint_dir, log, str(max(times)))
+
     # GET SCHEME BEGIN
     def get_scheme(self):
         """overloaded splunklib modularinput method"""
@@ -101,7 +134,6 @@ class MyScript(smi.Script):
         self.input_name, self.input_items = inputs.inputs.popitem()
         self.output_index = self.input_items['index']
         #self.output_sourcetype = self.input_items['sourcetype']
-        checkpoint_dir = inputs.metadata.get("checkpoint_dir")
 
         # get options from setup page
         # from TA_DUOSecurity2FA_setup_util import Setup_Util
@@ -122,35 +154,12 @@ class MyScript(smi.Script):
             ca_certs = None)
 
         if self.input_items['get_authentication_log']:
-            lasttime = self.load_checkpoint(ew, checkpoint_dir, "get_authentication_log")
-            if not lasttime:
-                ew.log( 'INFO', "no checkpoint time returned, using history value" )
-                lasttime = int(time.time()) - (int(self.input_items['history']) * 86400)
-            message = "Using checkpoint time %d" % (lasttime)
-            ew.log('INFO', message)
-            events = api_admin.get_authentication_log(lasttime + 1)
-            message = "retrieved %d duo get_authentication_log events from %s" % (len(events), self.input_items['api_host'])
-            ew.log( "INFO", message )
+            self.get_logs(inputs, ew, api_admin, "get_authentication_log")
+        if self.input_items['get_telephony_log']:
+            self.get_logs(inputs, ew, api_admin, "get_telephony_log")
+        if self.input_items['get_administrator_log']:
+            self.get_logs(inputs, ew, api_admin, "get_administrator_log")
 
-            times = []
-            for e in events:
-                e.pop('eventtype')
-                timestamp = e.pop('timestamp')
-                times.append(timestamp)
-                apihost = e.pop('host')
-                event = smi.Event(
-                    data = json.dumps(e),
-                    time = timestamp,
-                    host = apihost,
-                    index = self.output_index,
-                    sourcetype = "duo:authentication")
-                try:
-                    ew.write_event(event)
-                except Exception as e:
-                    raise e
-
-            if len(times) > 0:
-                self.save_checkpoint(ew, checkpoint_dir, "get_authentication_log", str(max(times)))
 
 if __name__ == "__main__":
     exitcode = MyScript().run(sys.argv)
