@@ -153,12 +153,15 @@ class MyScript(smi.Script):
             host = self.input_items['api_host'],
             ca_certs = None)
 
-        if self.input_items['get_authentication_log']:
+        if self.input_items['get_authentication_log'] in ['1', 'true', 'enabled',]:
             self.get_logs(inputs, ew, api_admin, "get_authentication_log")
-        if self.input_items['get_telephony_log']:
+        else: ew.log('INFO', "get_authentication_log not enabled")
+        if self.input_items['get_telephony_log'] in ['1', 'true', 'enabled',]:
             self.get_logs(inputs, ew, api_admin, "get_telephony_log")
-        if self.input_items['get_administrator_log']:
+        else: ew.log('INFO', "get_telephony_log not enabled")
+        if self.input_items['get_administrator_log'] in ['1', 'true', 'enabled',]:
             self.get_logs(inputs, ew, api_admin, "get_administrator_log")
+        else: ew.log('INFO', "get_administrator_log not enabled")
 
 
 if __name__ == "__main__":
