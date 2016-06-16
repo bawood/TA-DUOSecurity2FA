@@ -50,7 +50,13 @@ class MyScript(smi.Script):
             lasttime = int(time.time()) - (int(self.input_items['history']) * 86400)
         message = "Using checkpoint time %d" % (lasttime)
         ew.log('INFO', message)
-        events = getattr(admin, log)(lasttime + 1)
+        try:
+            events = getattr(admin, log)(lasttime + 1)
+        except RuntimeError as e:
+            if "429" in e.message:
+                ew.log( 'ERROR', "Received 429, too many requests. You may need to increase interval")
+            return
+
         message = "%s retrieved %d events from host %s" % (log, len(events), self.input_items['api_host'])
         ew.log( "INFO", message )
 
