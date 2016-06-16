@@ -1,9 +1,9 @@
 # TA-DUOSecurity2FA
 Splunk TA for indexing DUO 2 factor activity logs
 
-Requirements:
-DUO Security (https://duo.com/) 2 factor admin account that has read access
-to DUO Admin API. 
+Prerequisites:
+DUO Security (https://duo.com/) admin account that has read access
+to DUO Admin API.
 You'll need the DUO API host, an Integration Key and Secret Key.
 
 Deployment options:
