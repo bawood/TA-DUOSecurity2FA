@@ -131,8 +131,41 @@ class MyScript(smi.Script):
 
     def validate_input(self, definition):
         """overloaded splunklib modularinput method"""
-        # TODO : Implement you own validation logic
-        pass
+        import requests
+        import duo_client
+
+        interval = definition.parameters.get("interval")
+        host = definition.parameters.get("api_host")
+        url = "https://" + host + "/auth/v2/ping"
+        try:
+            response = requests.get(url)
+        except Exception as e:
+            raise e
+
+        if response.status_code != 200:
+            raise ValueError('GET request to API host failed')
+
+        try:
+            s = response.json()["stat"]
+            if s != "OK":
+                raise ValueError("Didn't receive OK from duo api host")
+        except Exception as e:
+            raise e
+
+        """
+        api_auth = duo_client.Auth(
+            ikey = definition.parameters.get('ikey'),
+            skey = definition.parameters.get('skey'),
+            host = definition.parameters.get['api_host'],
+            ca_certs = None)
+        try:
+            response = api_auth.check()
+        except Exception as e:
+            raise e
+
+        if response.status_code != 200:
+            raise ValueError("Duo auth check failed")
+        """
 
     def stream_events(self, inputs, ew):
         """overloaded splunklib modularinput method"""
