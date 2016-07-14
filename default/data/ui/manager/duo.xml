@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <endpoint name="data/inputs/duo">
   <header>Splunk Add-on for DUO Security logs</header>
   <breadcrumb>
@@ -60,6 +61,11 @@
           <view name="create"/>
         </element>
         <element name="get_administrator_log" type="checkbox" label="Enable DUO administrator log input">
+          <view name="list"/>
+          <view name="edit"/>
+          <view name="create"/>
+        </element>
+        <element name="get_summary" type="checkbox" label="Enable DUO account info summary input">
           <view name="list"/>
           <view name="edit"/>
           <view name="create"/>

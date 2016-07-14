@@ -94,6 +94,19 @@ class MyScript(smi.Script):
         if len(times) > 0:
             self.save_checkpoint(ew, checkpoint_dir, log, str(max(times)))
 
+    def get_summary(self, ew, admin):
+        ew.log( 'INFO', "getting info summary" )
+        response = admin.get_info_summary()
+        event = smi.Event(
+                data = json.dumps(response),
+                host = admin.host,
+                index = self.output_index,
+                sourcetype = "duo:info_summary")
+        try:
+            ew.write_event(event)
+        except Exception as e:
+            raise e
+
     # GET SCHEME BEGIN
     def get_scheme(self):
         """overloaded splunklib modularinput method"""
@@ -119,6 +132,11 @@ class MyScript(smi.Script):
                                          required_on_edit=True))
         scheme.add_argument(smi.Argument("get_administrator_log", title="Administration Log",
                                          description="DUO Security Administration Activity Log",
+                                         data_type=smi.Argument.data_type_boolean,
+                                         required_on_create=True,
+                                         required_on_edit=True))
+        scheme.add_argument(smi.Argument("get_summary", title="Info Summary",
+                                         description="DUO Security Account Info",
                                          data_type=smi.Argument.data_type_boolean,
                                          required_on_create=True,
                                          required_on_edit=True))
@@ -214,6 +232,9 @@ class MyScript(smi.Script):
         if self.input_items['get_administrator_log'] in ['1', 'true', 'enabled',]:
             self.get_logs(inputs, ew, api_admin, "get_administrator_log")
         else: ew.log('INFO', "get_administrator_log not enabled")
+        if self.input_items['get_summary'] in ['1','true','enabled',]:
+            self.get_summary(ew, api_admin)
+        else: ew.log('INFO', "get_summary not enabled")
 
 
 if __name__ == "__main__":
