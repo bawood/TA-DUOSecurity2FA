@@ -68,6 +68,8 @@ class MyScript(smi.Script):
         except RuntimeError as e:
             if "429" in e.message:
                 ew.log( 'ERROR', "Received 429, too many requests. You may need to increase interval")
+            else:
+                raise e
             return
 
         message = "%s retrieved %d events from host %s" % (log, len(events), self.input_items['api_host'])
@@ -183,24 +185,23 @@ class MyScript(smi.Script):
         except Exception as e:
             raise e
 
-        """
-        api_auth = duo_client.Auth(
+        api_auth = duo_client.Admin(
             ikey = definition.parameters.get('ikey'),
             skey = definition.parameters.get('skey'),
             host = definition.parameters.get['api_host'],
             ca_certs = None)
         try:
-            response = api_auth.check()
+            response = api_auth.get_administrator_log(int(time.time()))
         except Exception as e:
-            raise e
-
-        if response.status_code != 200:
-            raise ValueError("Duo auth check failed")
-        """
+            if response.status_code != 200:
+                raise ValueError("Duo Admin API test failed")
+            else:
+                raise e
 
     def stream_events(self, inputs, ew):
         """overloaded splunklib modularinput method"""
         # get input options
+        default = 'disabled'
         self.input_name, self.input_items = inputs.inputs.popitem()
         self.output_index = self.input_items['index']
         #self.output_sourcetype = self.input_items['sourcetype']
@@ -223,16 +224,16 @@ class MyScript(smi.Script):
             host = self.input_items['api_host'],
             ca_certs = None)
 
-        if self.input_items['get_authentication_log'] in ['1', 'true', 'enabled',]:
+        if self.input_items.get('get_authentication_log', default) in ['1', 'true', 'enabled',]:
             self.get_logs(inputs, ew, api_admin, "get_authentication_log")
         else: ew.log('INFO', "get_authentication_log not enabled")
-        if self.input_items['get_telephony_log'] in ['1', 'true', 'enabled',]:
+        if self.input_items.get('get_telephony_log', default) in ['1', 'true', 'enabled',]:
             self.get_logs(inputs, ew, api_admin, "get_telephony_log")
         else: ew.log('INFO', "get_telephony_log not enabled")
-        if self.input_items['get_administrator_log'] in ['1', 'true', 'enabled',]:
+        if self.input_items.get('get_administrator_log', default) in ['1', 'true', 'enabled',]:
             self.get_logs(inputs, ew, api_admin, "get_administrator_log")
         else: ew.log('INFO', "get_administrator_log not enabled")
-        if self.input_items['get_summary'] in ['1','true','enabled',]:
+        if self.input_items.get('get_summary', default) in ['1','true','enabled',]:
             self.get_summary(ew, api_admin)
         else: ew.log('INFO', "get_summary not enabled")
 
