@@ -167,7 +167,6 @@ class MyScript(smi.Script):
         import requests
         import duo_client
 
-        interval = definition.parameters.get("interval")
         host = definition.parameters.get("api_host")
         url = "https://" + host + "/auth/v2/ping"
         try:
@@ -188,7 +187,7 @@ class MyScript(smi.Script):
         api_auth = duo_client.Admin(
             ikey = definition.parameters.get('ikey'),
             skey = definition.parameters.get('skey'),
-            host = definition.parameters.get['api_host'],
+            host = definition.parameters.get('api_host'),
             ca_certs = None)
         try:
             response = api_auth.get_administrator_log(int(time.time()))
