@@ -119,9 +119,6 @@ class MyScript(smi.Script):
         scheme.streaming_mode_xml = True
         scheme.use_single_instance = False
 
-        scheme.add_argument(smi.Argument("name", title="Name",
-                                         description="",
-                                         required_on_create=True))
         scheme.add_argument(smi.Argument("get_telephony_log", title="Telephony Log",
                                          description="DUO Security Telephony Activity Log",
                                          data_type=smi.Argument.data_type_boolean,
