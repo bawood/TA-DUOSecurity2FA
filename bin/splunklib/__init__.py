@@ -1,4 +1,4 @@
-# Copyright 2011-2014 Splunk, Inc.
+# Copyright 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,6 +14,7 @@
 
 """Python library for Splunk."""
 
-__version_info__ = (1, 3, 1)
+from __future__ import absolute_import
+from splunklib.six.moves import map
+__version_info__ = (1, 6, 6)
 __version__ = ".".join(map(str, __version_info__))
-

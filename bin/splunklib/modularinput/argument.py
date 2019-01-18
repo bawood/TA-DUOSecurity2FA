@@ -1,4 +1,4 @@
-# Copyright 2011-2014 Splunk, Inc.
+# Copyright 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -12,6 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import absolute_import
 try:
     import xml.etree.ElementTree as ET
 except ImportError:
@@ -79,6 +80,9 @@ class Argument(object):
         """
         arg = ET.SubElement(parent, "arg")
         arg.set("name", self.name)
+
+        if self.title is not None:
+            ET.SubElement(arg, "title").text = self.title
 
         if self.description is not None:
             ET.SubElement(arg, "description").text = self.description

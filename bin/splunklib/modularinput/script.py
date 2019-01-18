@@ -1,4 +1,4 @@
-# Copyright 2011-2014 Splunk, Inc.
+# Copyright 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -12,14 +12,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
-from urlparse import urlsplit
+from splunklib.six.moves.urllib.parse import urlsplit
 import sys
 
-from splunklib.client import Service
-from splunklib.modularinput.event_writer import EventWriter
-from splunklib.modularinput.input_definition import InputDefinition
-from splunklib.modularinput.validation_definition import ValidationDefinition
+from ..client import Service
+from .event_writer import EventWriter
+from .input_definition import InputDefinition
+from .validation_definition import ValidationDefinition
+from splunklib import six
 
 try:
     import xml.etree.cElementTree as ET
@@ -27,7 +29,7 @@ except ImportError:
     import xml.etree.ElementTree as ET
 
 
-class Script(object):
+class Script(six.with_metaclass(ABCMeta, object)):
     """An abstract base class for implementing modular inputs.
 
     Subclasses should override ``get_scheme``, ``stream_events``,
@@ -37,7 +39,6 @@ class Script(object):
     The ``run`` function is used to run modular inputs; it typically should
     not be overridden.
     """
-    __metaclass__ = ABCMeta
 
     def __init__(self):
         self._input_definition = None
@@ -93,23 +94,19 @@ class Script(object):
                     return 0
                 except Exception as e:
                     root = ET.Element("error")
-                    ET.SubElement(root, "message").text = e.message
+                    ET.SubElement(root, "message").text = str(e)
                     event_writer.write_xml_document(root)
-                    import traceback
-                    print ""
-                    print(traceback.format_exc())
+
                     return 1
             else:
                 err_string = "ERROR Invalid arguments to modular input script:" + ' '.join(
                     args)
                 event_writer._err.write(err_string)
+                return 1
 
         except Exception as e:
-            err_string = EventWriter.ERROR + " : " + e.message
+            err_string = EventWriter.ERROR + str(e)
             event_writer._err.write(err_string)
-            import traceback
-            print ""
-            print(traceback.format_exc())
             return 1
 
     @property

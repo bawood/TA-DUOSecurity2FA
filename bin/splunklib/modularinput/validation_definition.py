@@ -1,4 +1,4 @@
-# Copyright 2011-2014 Splunk, Inc.
+# Copyright 2011-2015 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -13,12 +13,13 @@
 # under the License.
 
 
+from __future__ import absolute_import
 try:
     import xml.etree.cElementTree as ET
 except ImportError as ie:
     import xml.etree.ElementTree as ET
 
-from utils import parse_xml_data
+from .utils import parse_xml_data
 
 
 class ValidationDefinition(object):
