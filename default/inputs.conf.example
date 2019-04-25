@@ -1,0 +1,9 @@
+[duo://<stanzaname>]
+get_telephony_log = false 
+get_authentication_log = true 
+get_administrator_log = true 
+get_summary = true 
+history = 90
+api_host = api-xxxxxxx.duosecurity.com
+skey = DUP Admin API Secret Key
+ikey = DUO Admin API Integration Key
